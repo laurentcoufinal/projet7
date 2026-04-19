@@ -4,7 +4,7 @@
 
 ### Objectif produit
 - Creer une application client unique internationale pour remplacer 4 applications existantes heterogenes.
-- Couvrir en V1 : profil client, recherche d'offres, reservation, paiement, historique, modification/annulation.
+- Couvrir en V1 : profil client, recherche d'offres, reservation, paiement, historique, modification/annulation, chat, chatbot.
 - Exposer une API CRUD pour les applications agences (backoffice).
 
 ### Contraintes techniques imposees
@@ -23,13 +23,21 @@
 - Categorie vehicule selon norme ACRISS.
 - Suppression de compte avec ressaisie du mot de passe.
 
+### Regles metier implicites (principales)
+- **Securite compte**: mot de passe fort requis (longueur minimale, complexite, interdiction des mots de passe trop faibles ou deja compromis).
+- **Securite compte**: apres plusieurs echecs d'authentification, declencher un mecanisme anti-bruteforce (temporisation ou blocage temporaire).
+- **Commerce**: une reservation est confirmee uniquement apres autorisation/capture de paiement par le PSP.
+- **Commerce**: chaque transaction doit etre tracable (horodatage, montant, devise, statut) pour audit, litiges et rapprochement comptable.
+- **Location**: le vehicule attribue doit appartenir a la categorie reservee (ou superieure en surclassement commercial).
+- **Location**: les dates et lieux de depart/retour doivent rester coherents (retour strictement apres depart, agence compatible avec l'offre choisie).
+
 ---
 
 ## 2) Proposition de conception du domaine (DDD)
 
 ## Vision globale des domaines
 - **Core Domain**: Reservation et tarification de location (coeur business).
-- **Supporting Domains**: Identite client, catalogue flotte/offres, paiement, conformite locale, communication.
+- **Supporting Domains**: Identite client, catalogue flotte/offres, paiement, conformite locale, communication (chat V1, chat V2, chatbot), **FAQ** (contenu d'aide self-service).
 - **Generic Domains**: Observabilite, IAM, audit, CI/CD, gestion des secrets.
 
 ## Bounded Contexts recommandes
@@ -94,6 +102,42 @@
 - Responsabilites:
   - Emails/SMS transactionnels (confirmation reservation, annulation, facture).
 - Evenements: `NotificationRequested`, `NotificationDelivered`, `NotificationFailed`.
+
+### 2.9 Chat V1 Context
+- Responsabilites:
+  - Messagerie temps reel **client ↔ conseiller** (humain).
+  - Session de chat, attribution conversation a un agent, historique minimal cote client et cote service client.
+  - Cote agent (apres authentification): **liste des chats** inities par les clients (identite client, dernier message, horodatage), **filtres et tri**, ouverture d'une conversation pour reprendre le fil sur le meme canal que le client.
+  - Transport temps reel aligne PoC: synchronisation via **Redis Pub/Sub** et couche temps reel (ex. Node.js + Socket.io), derriere **API Gateway**; decouplage possible via micro-frontend (**Module Federation**) pour le module chat.
+- Aggregate principal: `ChatSession`, `AgentQueue` (ou projection file d'attente).
+- Evenements: `ChatSessionOpened`, `MessagePosted`, `ChatAssignedToAgent`, `ChatSessionClosed`.
+
+### 2.10 Chat V2 Context
+- Responsabilites:
+  - **Evolution du canal conversationnel** au-dela du chat humain synchrone: experience unifiee (meme socle UI/API), continuite de session, preparation des **transferts** vers le chatbot ou le conseiller selon le parcours.
+  - Integration avec les parcours metier (liens contextuels FAQ, fiche vehicule/offre, compte) sans dupliquer le catalogue dans le contexte chat.
+  - Gouvernance des **versions de protocole** et contrats API du module conversation (compatibilite clients web/agence).
+- Aggregate principal: `ConversationChannel` (facade) / extension de `ChatSession` selon decoupage equipe.
+- Evenements: `ConversationHandoffRequested`, `ConversationChannelUpgraded`, `DeepLinkOffered`.
+
+### 2.11 Chatbot Context
+- Responsabilites:
+  - **Scenarios conversationnels** structures (etapes, textes, type d'affichage: question, bouton, lien), **graphe de navigation** entre etapes selon les reponses (cadrage type diagramme draw.io exportable en definition executable).
+  - Raccourcis vers **FAQ**, vers **pages metier** (ex. recherche vehicule/offre), et **escalade explicite vers le chat humain** (Chat V1) lorsque le besoin depasse le script.
+  - Separation claire entre **contenu editable** (copy, ordre des etapes) et **moteur d'execution** (evaluation des branches, journalisation pour conformite et amelioration).
+- Aggregate principal: `ChatbotFlow`, `DialogTurn`.
+- Evenements: `BotFlowStarted`, `BotStepReached`, `BotEscalationToHumanRequested`, `BotFlowCompleted`.
+
+### 2.12 FAQ Context
+- Responsabilites:
+  - **Base de connaissances** structuree: questions/reponses, rubriques, ordre d'affichage, visibilite par canal (web, app) et par **pays/langue** (aligne i18n).
+  - **Recherche et navigation** (liste, filtres par theme, suggestions) sans dupliquer les regles metier du catalogue ou du booking: renvoi vers les parcours applicatifs via **liens profonds** stables.
+  - **Cycle de vie editorial**: brouillon, validation, publication, archivage; tracabilite des versions pour affichage conforme (mentions legales, CGU locales gerees dans `Compliance` mais **references** depuis la FAQ).
+  - **Mesure d'utilite** (optionnel): signalement article utile/inutile, metriques anonymisees pour prioriser les contenus; respect du cadre privacy.
+  - Integration **Chatbot Context**: identifiants d'articles FAQ exposés pour liens sortants depuis les scenarios; pas de logique de dialogue dans la FAQ.
+- Aggregate principal: `FaqArticle` (ou `KnowledgeEntry`), `FaqCategory`.
+- Evenements: `FaqArticlePublished`, `FaqArticleDeprecated`, `FaqCategoryReordered`.
+
 
 ---
 
