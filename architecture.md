@@ -122,7 +122,7 @@
 
 ### 2.11 Chatbot Context
 - Responsabilites:
-  - **Scenarios conversationnels** structures (etapes, textes, type d'affichage: question, bouton, lien), **graphe de navigation** entre etapes selon les reponses (cadrage type diagramme draw.io exportable en definition executable).
+  - **Scenarios conversationnels** structures (etapes, textes, type d'affichage: question, bouton, lien), **graphe de navigation** entre etapes selon les reponses (fichier yaml ou table de base de donnée).
   - Raccourcis vers **FAQ**, vers **pages metier** (ex. recherche vehicule/offre), et **escalade explicite vers le chat humain** (Chat V1) lorsque le besoin depasse le script.
   - Separation claire entre **contenu editable** (copy, ordre des etapes) et **moteur d'execution** (evaluation des branches, journalisation pour conformite et amelioration).
 - Aggregate principal: `ChatbotFlow`, `DialogTurn`.
@@ -137,7 +137,6 @@
   - Integration **Chatbot Context**: identifiants d'articles FAQ exposés pour liens sortants depuis les scenarios; pas de logique de dialogue dans la FAQ.
 - Aggregate principal: `FaqArticle` (ou `KnowledgeEntry`), `FaqCategory`.
 - Evenements: `FaqArticlePublished`, `FaqArticleDeprecated`, `FaqCategoryReordered`.
-
 
 ---
 
