@@ -45,7 +45,6 @@ docker compose up --build
 
 Acces:
 
-- App via gateway: [http://localhost:8080](http://localhost:8080)
 - App via gateway: [http://localhost:8081](http://localhost:8081)
 - Health auth: [http://localhost:8081/api/auth/health](http://localhost:8081/api/auth/health)
 - Cars: [http://localhost:8081/api/products/cars](http://localhost:8081/api/products/cars)
@@ -55,6 +54,34 @@ Acces:
 
 - Client: `client` / `client123`
 - Agent: `agent` / `agent123`
+
+## Tests unitaires par microservice
+
+Les tests peuvent etre lances independamment, service par service:
+
+### Auth service
+
+```bash
+cd microservices/auth-service
+npm install
+npm test
+```
+
+### Product service
+
+```bash
+cd microservices/product-service
+make install
+make test
+```
+
+### Chat service
+
+```bash
+cd microservices/chat-service
+npm install
+npm test
+```
 
 ## Scenarios de validation V1
 
