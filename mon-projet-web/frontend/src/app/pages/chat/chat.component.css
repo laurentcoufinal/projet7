@@ -1,0 +1,77 @@
+.panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: end;
+  margin-top: 0.75rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+input {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.session {
+  margin-top: 0.75rem;
+  color: #2563eb;
+}
+
+.error {
+  margin-top: 0.5rem;
+  color: #dc2626;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-height: 180px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.message {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.55rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.message small {
+  color: #64748b;
+}
+
+.composer {
+  margin-top: 0.9rem;
+  display: flex;
+  gap: 0.65rem;
+}
+
+.composer input {
+  flex: 1;
+}

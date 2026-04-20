@@ -1,4 +1,4 @@
-application internationnale 
+application internationnalisé
 conception par DDD
 auto disponibilte par microservices
 CI/CD

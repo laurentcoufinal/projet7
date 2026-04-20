@@ -1,0 +1,52 @@
+<section class="panel">
+  <h2>Espace service client</h2>
+  <p>Liste des chats inities par les clients avec filtre et tri.</p>
+  <p class="error" *ngIf="loginError">{{ loginError }}</p>
+
+  <div class="toolbar">
+    <label>
+      Filtrer
+      <input [(ngModel)]="filter" (ngModelChange)="refreshVisibleSessions()" placeholder="Nom client ou message" />
+    </label>
+    <label>
+      Tri
+      <select [(ngModel)]="sortBy" (ngModelChange)="refreshVisibleSessions()">
+        <option value="timeDesc">Plus recent d'abord</option>
+        <option value="timeAsc">Plus ancien d'abord</option>
+      </select>
+    </label>
+    <button (click)="loadSessions()">Actualiser</button>
+  </div>
+</section>
+
+<section class="layout">
+  <aside class="panel sessions">
+    <h3>Conversations</h3>
+    <button
+      class="session"
+      *ngFor="let item of visibleSessions"
+      [class.active]="item.id === selectedSessionId"
+      (click)="selectSession(item.id)"
+    >
+      <strong>{{ item.clientName }}</strong>
+      <span>{{ item.lastMessage?.content || 'Aucun message pour le moment' }}</span>
+      <small>{{ (item.lastMessage?.sentAt || item.createdAt) | date: 'short' }}</small>
+    </button>
+  </aside>
+
+  <div class="panel thread">
+    <h3>Conversation active</h3>
+    <p *ngIf="!selectedSessionId">Selectionnez un chat pour echanger avec le client.</p>
+    <div class="messages" *ngIf="selectedSessionId">
+      <div class="message" *ngFor="let item of messages">
+        <strong>{{ item.senderName }} ({{ item.senderRole }})</strong>
+        <span>{{ item.content }}</span>
+        <small>{{ item.sentAt | date: 'shortTime' }}</small>
+      </div>
+    </div>
+    <div class="composer" *ngIf="selectedSessionId">
+      <input [(ngModel)]="message" placeholder="Reponse agent..." (keyup.enter)="sendMessage()" />
+      <button (click)="sendMessage()">Envoyer</button>
+    </div>
+  </div>
+</section>

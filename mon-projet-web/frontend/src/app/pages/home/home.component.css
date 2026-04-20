@@ -1,0 +1,39 @@
+.hero {
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.hero h2 {
+  margin: 0 0 0.5rem;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.55rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.faq-item + .faq-item {
+  margin-top: 0.85rem;
+}
+
+.faq-item p {
+  margin: 0.35rem 0 0;
+}

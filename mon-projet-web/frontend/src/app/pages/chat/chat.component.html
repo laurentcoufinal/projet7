@@ -1,0 +1,30 @@
+<section class="panel">
+  <h2>Chat client</h2>
+  <p>Demarrez une conversation puis echangez en temps reel avec un conseiller.</p>
+
+  <div class="controls">
+    <label>
+      Nom client
+      <input [(ngModel)]="clientName" />
+    </label>
+    <button (click)="startChat()" [disabled]="loading">{{ loading ? 'Creation...' : 'Demarrer le chat' }}</button>
+  </div>
+
+  <p class="session" *ngIf="sessionId">Session active: {{ sessionId }}</p>
+  <p class="error" *ngIf="error">{{ error }}</p>
+</section>
+
+<section class="panel" *ngIf="sessionId">
+  <div class="messages">
+    <div class="message" *ngFor="let item of messages">
+      <strong>{{ item.senderName }}</strong>
+      <span>{{ item.content }}</span>
+      <small>{{ item.sentAt | date: 'shortTime' }}</small>
+    </div>
+  </div>
+
+  <div class="composer">
+    <input [(ngModel)]="message" placeholder="Votre message..." (keyup.enter)="sendMessage()" />
+    <button (click)="sendMessage()">Envoyer</button>
+  </div>
+</section>

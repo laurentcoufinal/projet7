@@ -1,0 +1,14 @@
+<div class="app-shell">
+  <header class="header">
+    <h1>PoC Location Voiture</h1>
+    <nav>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
+      <a routerLink="/chat" routerLinkActive="active">Chat client</a>
+      <a routerLink="/agent" routerLinkActive="active">Service client</a>
+    </nav>
+  </header>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

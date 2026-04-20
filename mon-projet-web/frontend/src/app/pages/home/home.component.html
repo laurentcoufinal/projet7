@@ -1,0 +1,41 @@
+<section class="hero">
+  <h2>Location de voitures en France</h2>
+  <p>
+    Cette page d'accueil est volontairement statique pour le PoC, mais alimentee par les microservices
+    de catalogue et FAQ.
+  </p>
+</section>
+
+<section class="panel" *ngIf="loading">
+  Chargement des donnees...
+</section>
+
+<section class="panel" *ngIf="!loading">
+  <h3>Villes principales avec aeroport</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Ville</th>
+        <th>Aeroport</th>
+        <th>Modele</th>
+        <th>Prix / jour</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let car of cars">
+        <td>{{ car.city }}</td>
+        <td>{{ car.airport }}</td>
+        <td>{{ car.model }}</td>
+        <td>{{ car.dailyPrice }} EUR</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="panel" *ngIf="!loading">
+  <h3>FAQ (10 Q/R)</h3>
+  <div class="faq-item" *ngFor="let item of faq">
+    <strong>{{ item.question }}</strong>
+    <p>{{ item.answer }}</p>
+  </div>
+</section>
