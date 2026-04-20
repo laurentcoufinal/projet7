@@ -83,6 +83,15 @@ npm install
 npm test
 ```
 
+## Tests E2E
+
+Le test E2E valide le flux complet via la gateway: auth, profile, catalogue, FAQ, creation session chat et persistance message.
+
+```bash
+cd mon-projet-web
+./e2e/run-e2e.sh
+```
+
 ## Scenarios de validation V1
 
 1. Ouvrir `Chat client`, saisir un nom, creer une session, envoyer des messages.
