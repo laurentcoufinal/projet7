@@ -7,7 +7,7 @@ stack :
 selon architecture, peupler une base minimale de voiture de location (france, principales ville avec aeroport), faq minimale(10 question reponses).
 Micro-frontend Module Federation (via @angular-architects/module-federation).
 API Gateway.
-cahat:Redis sert de "pont" (via son mécanisme Pub/Sub) pour synchroniser les messages Node.js + Socket.io + Redis.
+chat:Redis sert de "pont" (via son mécanisme Pub/Sub) pour synchroniser les messages Node.js + Socket.io + Redis.
 ---
 V1:
 la page generale du site est statique pour tester le poc mais devellopée selon l'architecture microservice
