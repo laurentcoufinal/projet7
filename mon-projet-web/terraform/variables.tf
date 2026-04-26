@@ -45,3 +45,29 @@ variable "root_volume_size" {
   type        = number
   default     = 20
 }
+
+variable "dockerhub_username" {
+  description = "Nom d'utilisateur DockerHub proprietaire des images"
+  type        = string
+  default     = ""
+}
+
+variable "dockerhub_token" {
+  description = "Token DockerHub (utile si images privees)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "image_tag" {
+  description = "Tag des images Docker a deployer"
+  type        = string
+  default     = "latest"
+}
+
+variable "jwt_secret" {
+  description = "Secret JWT injecte dans auth-service"
+  type        = string
+  default     = "dev-secret-change-me"
+  sensitive   = true
+}

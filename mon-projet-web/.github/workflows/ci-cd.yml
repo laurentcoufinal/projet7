@@ -130,12 +130,17 @@ jobs:
           TF_VAR_ssh_allowed_cidr: ${{ vars.TF_VAR_SSH_ALLOWED_CIDR }}
           TF_VAR_http_allowed_cidr: ${{ vars.TF_VAR_HTTP_ALLOWED_CIDR }}
           TF_VAR_key_name: ${{ vars.TF_VAR_KEY_NAME }}
+          TF_VAR_dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+          TF_VAR_dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_image_tag: ${{ github.sha }}
 
   terraform-apply:
     name: Terraform apply
     runs-on: ubuntu-latest
     needs:
       - terraform-plan
+      - docker-build-and-push
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_REGION != '' && vars.TF_STATE_BUCKET != '' && vars.TF_STATE_KEY != '' && vars.TF_STATE_REGION != '' && secrets.AWS_ROLE_TO_ASSUME != ''
     environment: prod
     steps:
@@ -170,6 +175,10 @@ jobs:
           TF_VAR_ssh_allowed_cidr: ${{ vars.TF_VAR_SSH_ALLOWED_CIDR }}
           TF_VAR_http_allowed_cidr: ${{ vars.TF_VAR_HTTP_ALLOWED_CIDR }}
           TF_VAR_key_name: ${{ vars.TF_VAR_KEY_NAME }}
+          TF_VAR_dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+          TF_VAR_dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_image_tag: ${{ github.sha }}
 
   docker-build-and-push:
     name: Build et push images Docker

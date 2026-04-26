@@ -6,3 +6,7 @@ key_name          = "ma-keypair-ec2"
 ssh_allowed_cidr  = "0.0.0.0/0"
 http_allowed_cidr = "0.0.0.0/0"
 root_volume_size  = 20
+dockerhub_username = "mon-user-dockerhub"
+dockerhub_token    = ""
+image_tag          = "latest"
+jwt_secret         = "change-me"
