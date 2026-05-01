@@ -468,3 +468,218 @@
   - Gesetze-im-Internet (Allemagne BFSG)
   - Documentation officielles PSP (Stripe, Adyen, Checkout.com, PayPal, Worldpay, dLocal)
 
+---
+
+## 9) Glossaire des termes techniques et abreviations
+
+## 9.1 Termes techniques
+- **ACL (Anti-Corruption Layer)**: couche d'adaptation qui isole le modele d'un domaine des modeles externes pour eviter la contamination conceptuelle.
+- **Aggregate**: groupe d'objets metier manipules comme une unite de coherence, protege par des invariants.
+- **API Gateway**: point d'entree unique des APIs, qui gere routage, securite, quotas et observabilite.
+- **BFF (Backend for Frontend)**: backend dedie a une interface cliente pour exposer des payloads adaptes a ses besoins UX.
+- **Bounded Context**: perimetre explicite dans lequel un modele metier garde un sens unique et coherent.
+- **Circuit breaker**: mecanisme de protection qui coupe temporairement les appels vers un service en echec pour limiter la propagation des pannes.
+- **Core Domain**: coeur metier strategique qui cree le plus de valeur et merite l'effort de conception principal.
+- **Database per service**: principe microservices ou chaque service possede sa base de donnees.
+- **Event-driven**: style d'architecture dans lequel les services communiquent principalement via des evenements.
+- **Feature flag**: interrupteur de fonctionnalite permettant d'activer/desactiver un comportement sans redeploiement.
+- **Idempotence**: propriete garantissant qu'une operation repetee produit le meme resultat sans effet de bord supplementaire.
+- **Micro-frontend**: decoupage du frontend en modules independants, livrables par equipes distinctes.
+- **Multi-AZ**: deploiement sur plusieurs zones de disponibilite pour ameliorer la disponibilite et la resilience.
+- **Observabilite**: capacite a comprendre l'etat interne d'un systeme via logs, metriques et traces.
+- **Policy Engine**: moteur qui evalue des regles declaratives (conformite, retention, pricing, etc.) selon le contexte.
+- **Read replica**: copie en lecture seule d'une base, utilisee pour absorber la charge de lecture.
+- **Retry borne**: repetition controlee d'un appel en echec avec limites de tentatives et delais.
+- **SLO/SLI**: objectifs et indicateurs de niveau de service utilises pour piloter la fiabilite.
+- **Stateless**: composant qui ne conserve pas d'etat local persistant entre deux requetes.
+- **Tokenisation**: remplacement d'une donnee sensible (ex: numero de carte) par un jeton non exploitable.
+
+## 9.2 Abreviations
+- **A11y**: abbreviation d'accessibilite numerique.
+- **ACRISS**: standard international de classification des categories de vehicules de location.
+- **ADA**: Americans with Disabilities Act (cadre accessibilite aux Etats-Unis).
+- **ALB**: Application Load Balancer (repartition de charge AWS couche applicative).
+- **APM**: Alternative Payment Methods (moyens de paiement alternatifs aux cartes).
+- **AWS**: Amazon Web Services.
+- **BFSG**: loi allemande sur l'accessibilite des produits et services.
+- **BFF**: Backend for Frontend.
+- **CCPA/CPRA**: lois californiennes de protection des donnees personnelles.
+- **CGU**: Conditions Generales d'Utilisation.
+- **CI/CD**: Integration Continue / Deploiement Continu.
+- **CNIL**: autorite francaise de protection des donnees.
+- **CRUD**: Create, Read, Update, Delete (operations de base sur les donnees).
+- **DDD**: Domain-Driven Design.
+- **DOJ**: Department of Justice (Etats-Unis).
+- **DSAR**: Data Subject Access Request (demande d'exercice des droits sur les donnees personnelles).
+- **DSP2 (PSD2)**: directive europeenne sur les services de paiement.
+- **DX**: Developer Experience.
+- **EAA**: European Accessibility Act.
+- **GDPR / RGPD**: reglement sur la protection des donnees (UE).
+- **GPC**: Global Privacy Control.
+- **HA**: High Availability (haute disponibilite).
+- **IAM**: Identity and Access Management.
+- **IaC**: Infrastructure as Code.
+- **KMS**: Key Management Service (gestion de cles de chiffrement AWS).
+- **KPI**: Key Performance Indicator.
+- **LTR / RTL**: sens d'ecriture gauche-droite / droite-gauche.
+- **MDR**: Merchant Discount Rate (commission appliquee sur les transactions cartes).
+- **MFA**: Multi-Factor Authentication.
+- **mTLS**: Mutual TLS (authentification TLS mutuelle).
+- **MTTD**: Mean Time To Detect.
+- **MTTR**: Mean Time To Recover/Repair.
+- **PCI DSS**: Payment Card Industry Data Security Standard.
+- **PIA**: Privacy Impact Assessment.
+- **PIPEDA**: loi federale canadienne de protection des donnees personnelles.
+- **PITR**: Point-In-Time Recovery (restauration a un instant donne).
+- **PoC**: Proof of Concept.
+- **PSP**: Payment Service Provider.
+- **RPO**: Recovery Point Objective.
+- **RTO**: Recovery Time Objective.
+- **SAST**: Static Application Security Testing.
+- **SCA**: Strong Customer Authentication / Software Composition Analysis (selon le contexte).
+- **SDLC**: Software Development Life Cycle.
+- **SIEM**: Security Information and Event Management.
+- **SLA**: Service Level Agreement.
+- **SLO/SLI**: Service Level Objective / Service Level Indicator.
+- **SMS**: Short Message Service.
+- **SNS/SQS**: services AWS de messagerie publish/subscribe et de files de messages.
+- **TLS**: Transport Layer Security.
+- **UK GDPR**: version britannique du GDPR.
+- **UX**: User Experience.
+- **WAF**: Web Application Firewall.
+- **WCAG**: Web Content Accessibility Guidelines.
+
+---
+
+## 10) Modele de donnees
+
+## 10.1 Principes de modelisation
+- **Database per service**: chaque bounded context reste proprietaire de son schema en ecriture.
+- **Write model vs read model**: les parcours transactionnels (`booking`, `payment`, `identity`) conservent des modeles normalises, alors que la recherche (`Rental Search`) utilise des projections optimisees lecture.
+- **Identifiants**: chaque entite porte un identifiant technique immuable (`id`) et, si necessaire, un identifiant metier (`bookingNumber`, `paymentReference`).
+- **Traçabilite**: toutes les entites critiques incluent `createdAt`, `updatedAt`, `createdBy` (si applicable) et des etats historises.
+- **Internationalisation**: le modele porte explicitement `countryCode`, `locale`, `currency` quand la regle metier depend d'un pays.
+- **Conformite by design**: minimisation des donnees personnelles, durees de retention explicites, liens vers journal d'audit.
+
+## 10.2 Vue conceptuelle transverse (ER simplifie)
+
+```mermaid
+erDiagram
+    CustomerAccount ||--|| CustomerProfile : owns
+    CustomerAccount ||--o{ ConsentRecord : grants
+    CustomerAccount ||--o{ Booking : places
+    Booking }o--|| OfferProjection : selects
+    OfferProjection }o--|| RentalAgency : startsAt
+    OfferProjection }o--|| VehicleCategory : uses
+    Booking ||--o{ BookingStatusHistory : records
+    Booking ||--o{ PaymentOrder : initiates
+    PaymentOrder ||--o{ PaymentTransaction : tracks
+    PaymentOrder ||--o{ Refund : mayGenerate
+    Booking ||--o{ NotificationRequest : triggers
+    NotificationRequest ||--o{ NotificationDelivery : delivers
+    CustomerAccount ||--o{ ChatSession : opens
+    ChatSession ||--o{ ChatMessage : contains
+    ChatbotFlow ||--o{ DialogTurn : executes
+    FaqCategory ||--o{ FaqArticle : contains
+    CustomerAccount ||--o{ DataSubjectRequest : submits
+    RetentionRule ||--o{ AuditLogEntry : governs
+```
+
+## 10.3 Detail par contexte
+
+### 10.3.1 Identity & Profile Context
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `CustomerAccount` | Racine de compte client | `id`, `email`, `status`, `passwordHash`, `failedAuthCount`, `lockedUntil`, `createdAt` | Email unique; verrouillage temporaire apres echecs successifs; suppression de compte exige verification mot de passe. |
+| `CustomerProfile` | Donnees personnelles profil | `accountId`, `firstName`, `lastName`, `birthDate`, `address`, `phone`, `locale`, `countryCode` | Validation format et coherence locale; minimisation des champs obligatoires. |
+| `AuthCredential` | Meta securite authentification | `accountId`, `hashAlgorithm`, `hashParams`, `mfaEnabled`, `lastPasswordChangeAt` | Algorithmes modernes uniquement (argon2id/bcrypt); politique de rotation selon risque. |
+| `ConsentRecord` | Preuve de consentement | `id`, `accountId`, `consentType`, `granted`, `version`, `source`, `grantedAt`, `revokedAt` | Horodatage obligatoire; version de texte legal tracee. |
+
+### 10.3.2 Rental Search Context
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `RentalAgency` | Point de depart/retour | `id`, `countryCode`, `city`, `timezone`, `status` | Agence active requise pour constituer une offre reservable. |
+| `VehicleCategory` | Categorie vehicule ACRISS | `acrissCode`, `label`, `seats`, `doors`, `transmission`, `fuelType` | Conformite standard ACRISS; mapping unique par code. |
+| `OfferProjection` | Projection lecture d'offre | `id`, `departureAgencyId`, `returnAgencyId`, `startAt`, `endAt`, `acrissCode`, `basePrice`, `currency`, `availability` | Read model reconstruit par evenements catalogue/pricing; coherence depart/retour et dates. |
+| `SearchQuery` (ephemere) | Parametres de recherche | `departureCity`, `returnCity`, `startAt`, `endAt`, `acrissCode`, `locale` | `endAt` strictement apres `startAt`; non persiste longue duree hors analytics. |
+
+### 10.3.3 Pricing & Policy Context
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `PricingPolicy` | Regles de calcul tarifaire | `id`, `countryCode`, `effectiveFrom`, `effectiveTo`, `formulaVersion`, `rulesJson` | Versionnement obligatoire; une seule policy active par segment/date. |
+| `CancellationPolicy` | Regles annulation/remboursement | `id`, `countryCode`, `freeUntilHours`, `refundPercentUnder7Days`, `effectiveFrom` | Regle V1: remboursement 25% si annulation < 7 jours. |
+| `CountryRuleSet` | Parametrage local reglementaire/commercial | `countryCode`, `taxProfile`, `legalFlags`, `paymentConstraints` | Isoler les differences pays sans forker le domaine core. |
+
+### 10.3.4 Booking Context (Core)
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `Booking` | Reservation client | `id`, `bookingNumber`, `customerAccountId`, `offerId`, `status`, `startAt`, `endAt`, `totalAmount`, `currency`, `countryCode`, `createdAt` | Modification interdite si moins de 48h avant `startAt`; annulation applique la policy active. |
+| `BookingDriverSnapshot` | Snapshot conducteur au moment de la reservation | `bookingId`, `firstName`, `lastName`, `birthDate`, `licenseNumber`, `licenseCountry` | Snapshot immutable pour audit; dissocie des evolutions futures du profil. |
+| `BookingStatusHistory` | Historique des transitions | `id`, `bookingId`, `fromStatus`, `toStatus`, `reasonCode`, `changedAt`, `changedBy` | Transition validee par machine d'etats; aucune transition retroactive silencieuse. |
+
+### 10.3.5 Payment Orchestration Context
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `PaymentOrder` | Intention de paiement liee a une reservation | `id`, `bookingId`, `pspProvider`, `amount`, `currency`, `status`, `idempotencyKey`, `createdAt` | Unicite `idempotencyKey`; reservation confirmee uniquement apres autorisation/capture. |
+| `PaymentTransaction` | Trace des interactions PSP | `id`, `paymentOrderId`, `pspTransactionId`, `type`, `status`, `amount`, `rawStatus`, `processedAt` | Traçabilite complete pour audit, litiges et rapprochement comptable. |
+| `Refund` | Remboursement total/partiel | `id`, `paymentOrderId`, `bookingId`, `amount`, `reason`, `status`, `requestedAt`, `completedAt` | Montant borne par policy d'annulation et montant capture. |
+
+### 10.3.6 Compliance & Privacy Context
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `DataSubjectRequest` | Demande RGPD/UK GDPR/PIPEDA/CCPA | `id`, `accountId`, `requestType`, `status`, `countryCode`, `submittedAt`, `completedAt` | Delais de traitement selon pays; preuve de traitement obligatoire. |
+| `RetentionRule` | Regle de conservation/suppression | `id`, `dataDomain`, `countryCode`, `retentionDays`, `legalHoldAllowed`, `effectiveFrom` | Purge conditionnelle avec legal hold prioritaire. |
+| `AuditLogEntry` | Journal inviolable de conformite | `id`, `eventType`, `entityType`, `entityId`, `actorType`, `actorId`, `occurredAt`, `payloadHash` | Ecriture append-only; horodatage et integrite verifiables. |
+
+### 10.3.7 Notification Context
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `NotificationRequest` | Demande d'envoi issue d'un evenement metier | `id`, `bookingId`, `accountId`, `channel`, `templateCode`, `locale`, `payloadRef`, `status`, `requestedAt` | Idempotence par cle metier (booking + template + version). |
+| `NotificationDelivery` | Tentative d'envoi fournisseur | `id`, `requestId`, `provider`, `providerMessageId`, `attempt`, `status`, `errorCode`, `sentAt` | Retries bornes; historisation de toutes tentatives. |
+
+### 10.3.8 Chat V1 / V2 Context
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `ChatSession` | Session conversation client-conseiller | `id`, `accountId`, `status`, `openedAt`, `closedAt`, `assignedAgentId`, `channelVersion` | Une session active par client et canal selon politique d'exploitation. |
+| `ChatMessage` | Message echange dans une session | `id`, `sessionId`, `senderType`, `senderId`, `contentType`, `content`, `sentAt` | Horodatage strict; masquage des donnees sensibles dans contenus. |
+| `ConversationChannel` | Facade evolution canaux V2 | `id`, `sessionId`, `mode`, `handoffState`, `upgradedAt` | Garde la continuite de session lors du handoff bot/humain. |
+
+### 10.3.9 Chatbot Context
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `ChatbotFlow` | Definition scenario dialogue | `id`, `countryCode`, `locale`, `version`, `status`, `publishedAt` | Version publiee immutable; brouillon editable hors prod. |
+| `DialogTurn` | Etape de dialogue executee | `id`, `flowId`, `stepCode`, `inputType`, `nextStepRules`, `escalationEnabled` | Navigation deterministe; escalation explicite vers chat humain. |
+
+### 10.3.10 FAQ Context
+
+| Entite | Role | Attributs cles | Regles |
+|---|---|---|---|
+| `FaqCategory` | Rubrique de classement | `id`, `countryCode`, `locale`, `title`, `displayOrder`, `status` | Ordre d'affichage stable; categories actives seulement exposees. |
+| `FaqArticle` | Article de connaissance | `id`, `categoryId`, `question`, `answer`, `status`, `version`, `publishedAt`, `deprecatedAt` | Cycle editorial brouillon/validation/publication/archivage; version tracee. |
+
+## 10.4 Regles de relation inter-contextes
+- `Booking` reference `OfferProjection` par identifiant d'offre resolue au moment de la reservation (pas de jointure cross-db runtime).
+- `PaymentOrder` reference `Booking` par `bookingId` et est reconcilie via evenements (`PaymentAuthorized`, `PaymentCaptured`, `PaymentFailed`).
+- `NotificationRequest` est genere par evenement de `Booking`/`Payment`, puis execute de maniere asynchrone.
+- `Compliance` ne porte pas la logique de reservation/paiement mais conserve les preuves, demandes utilisateur et politiques de retention.
+- `Agency API Context` expose des facades CRUD et mappe vers les modeles de chaque contexte via ACL.
+
+## 10.5 Contraintes techniques de persistance
+- Chiffrement at-rest et in-transit sur toutes les bases et flux inter-services.
+- Migrations versionnees et reversibles par service.
+- Clefs d'idempotence sur commandes critiques (`payment`, `notification`, operations agence).
+- Indexation minimale:
+  - `Booking`: (`customerAccountId`, `startAt`), (`bookingNumber` unique),
+  - `PaymentOrder`: (`bookingId`), (`idempotencyKey` unique),
+  - `OfferProjection`: (`departureAgencyId`, `startAt`, `acrissCode`),
+  - `DataSubjectRequest`: (`accountId`, `requestType`, `status`).
+
