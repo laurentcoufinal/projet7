@@ -6,8 +6,10 @@ import { Car, ChatMessage, ChatSession, FaqEntry } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly baseUrl = '/api';
-  private readonly socket: Socket = io('/', { path: '/socket.io' });
+  private readonly backendOrigin =
+    globalThis.location?.port === '4200' ? 'http://localhost:8081' : globalThis.location?.origin ?? '';
+  private readonly baseUrl = `${this.backendOrigin}/api`;
+  private readonly socket: Socket = io(this.backendOrigin || '/', { path: '/socket.io' });
 
   constructor(private readonly http: HttpClient) {}
 
