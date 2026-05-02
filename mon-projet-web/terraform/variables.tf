@@ -19,7 +19,7 @@ variable "environment" {
 variable "instance_type" {
   description = "Type d'instance EC2"
   type        = string
-  default     = "t2.micro"
+  default     = "t2.small"
 }
 
 variable "key_name" {
@@ -49,7 +49,7 @@ variable "root_volume_size" {
 variable "dockerhub_username" {
   description = "Nom d'utilisateur DockerHub proprietaire des images"
   type        = string
-  default     = ""
+  default     = "laurentcoufinal"
 }
 
 variable "dockerhub_token" {

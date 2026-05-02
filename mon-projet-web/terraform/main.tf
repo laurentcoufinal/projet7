@@ -42,117 +42,21 @@ locals {
     ManagedBy   = "terraform"
   }
 
-  image_prefix = var.dockerhub_username != "" ? "${var.dockerhub_username}/" : ""
-
-  app_user_data = <<-EOT
-    #!/bin/bash
-    set -euxo pipefail
-
-    dnf update -y
-    dnf install -y docker
-    systemctl enable --now docker
-    usermod -aG docker ec2-user
-
-    mkdir -p /opt/mon-projet-web
-
-    cat > /opt/mon-projet-web/nginx.conf <<'NGINXCONF'
-    events {}
-    http {
-      upstream auth_upstream { server auth-service:3001; }
-      upstream product_upstream { server product-service:8000; }
-      upstream chat_upstream { server chat-service:3003; }
-      upstream frontend_upstream { server frontend:80; }
-
-      server {
-        listen 80;
-
-        location /api/auth/ {
-          proxy_pass http://auth_upstream/;
-        }
-
-        location /api/products/ {
-          proxy_pass http://product_upstream/;
-        }
-
-        location /api/chat/ {
-          proxy_pass http://chat_upstream/;
-        }
-
-        location /socket.io/ {
-          proxy_http_version 1.1;
-          proxy_set_header Upgrade $http_upgrade;
-          proxy_set_header Connection "upgrade";
-          proxy_set_header Host $host;
-          proxy_pass http://chat_upstream/socket.io/;
-        }
-
-        location / {
-          proxy_pass http://frontend_upstream/;
-        }
-      }
-    }
-    NGINXCONF
-
-    cat > /opt/mon-projet-web/docker-compose.yml <<'COMPOSE'
-    services:
-      redis:
-        image: redis:7-alpine
-        restart: unless-stopped
-
-      auth-service:
-        image: ${local.image_prefix}auth-service:${var.image_tag}
-        restart: unless-stopped
-        environment:
-          PORT: 3001
-          JWT_SECRET: "${var.jwt_secret}"
-        depends_on:
-          - redis
-
-      product-service:
-        image: ${local.image_prefix}product-service:${var.image_tag}
-        restart: unless-stopped
-        environment:
-          PORT: 8000
-
-      chat-service:
-        image: ${local.image_prefix}chat-service:${var.image_tag}
-        restart: unless-stopped
-        environment:
-          PORT: 3003
-          REDIS_URL: redis://redis:6379
-        depends_on:
-          - redis
-
-      frontend:
-        image: ${local.image_prefix}frontend:${var.image_tag}
-        restart: unless-stopped
-        depends_on:
-          - auth-service
-          - product-service
-          - chat-service
-
-      gateway:
-        image: nginx:1.27-alpine
-        restart: unless-stopped
-        ports:
-          - "80:80"
-        volumes:
-          - /opt/mon-projet-web/nginx.conf:/etc/nginx/nginx.conf:ro
-        depends_on:
-          - frontend
-          - auth-service
-          - product-service
-          - chat-service
-    COMPOSE
-
-    if [ -n "${var.dockerhub_username}" ] && [ -n "${var.dockerhub_token}" ]; then
-      echo "${var.dockerhub_token}" | docker login -u "${var.dockerhub_username}" --password-stdin
-    fi
-
-    cd /opt/mon-projet-web
-    docker compose pull
-    docker compose up -d
-  EOT
+  app_user_data = <<EOF
+#!/bin/bash
+set -e
+sudo dnf update -y
+sudo dnf install -y docker
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -aG docker ec2-user
+newgrp docker
+docker run -d -p 8081:8081 laurentcoufinal/projet7:latest
+docker run -d -p 4200:4200 laurentcoufinal/projet7-frontend:latest
+docker run -d -p 3001:3001 laurentcoufinal/projet7-auth-service:latest
+docker run -d -p 8000:8000 laurentcoufinal/projet7-product-service:latest
+docker run -d -p 3003:3003 laurentcoufinal/projet7-chat-service:latest
+EOF
 }
 
 resource "aws_security_group" "app_sg" {

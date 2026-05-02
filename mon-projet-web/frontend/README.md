@@ -42,14 +42,22 @@ To execute unit tests with the [Karma](https://karma-runner.github.io) test runn
 
 ```bash
 ng test
-```
 
+cd /home/laurent/projet7/mon-projet-web
+
+(cd microservices/auth-service && npm install && npm test) && \
+(cd microservices/product-service && make install && make test) && \
+(cd microservices/chat-service && npm install && npm test)
+```
 ## Running end-to-end tests
 
 For end-to-end (e2e) testing, run:
 
 ```bash
 ng e2e
+
+cd /home/laurent/projet7/mon-projet-web
+./e2e/run-e2e.sh
 ```
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.

@@ -1,0 +1,55 @@
+# Déploiement EC2 / serveur : uniquement des images Docker Hub (pas de build local).
+# Prérequis : exécuter depuis le répertoire mon-projet-web (fichier gateway/nginx.conf monté dans le conteneur nginx).
+# Exemple : JWT_SECRET=... docker compose -f docker-compose-aws.yml up -d
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: poc-redis
+    ports:
+      - "6379:6379"
+
+  auth-service:
+    image: laurentcoufinal/projet7-auth-service:latest
+    container_name: poc-auth-service
+    environment:
+      PORT: 3001
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+    depends_on:
+      - redis
+
+  product-service:
+    image: laurentcoufinal/projet7-product-service:latest
+    container_name: poc-product-service
+    environment:
+      PORT: 8000
+
+  chat-service:
+    image: laurentcoufinal/projet7-chat-service:latest
+    container_name: poc-chat-service
+    environment:
+      PORT: 3003
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - redis
+
+  frontend:
+    image: laurentcoufinal/projet7-frontend:latest
+    container_name: poc-frontend
+    depends_on:
+      - auth-service
+      - product-service
+      - chat-service
+
+  gateway:
+    image: nginx:1.27-alpine
+    container_name: poc-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - auth-service
+      - product-service
+      - chat-service
