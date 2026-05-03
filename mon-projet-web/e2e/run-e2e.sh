@@ -89,6 +89,7 @@ PY
 echo "[E2E] Test flux chat..."
 SESSION_RESPONSE="$(curl -sS -X POST "${BASE_URL}/api/chat/sessions" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
   -d '{"clientName":"Client E2E"}')"
 SESSION_ID="$(SESSION_RESPONSE="${SESSION_RESPONSE}" python3 - <<'PY'
 import json
@@ -100,9 +101,11 @@ PY
 
 curl -sS -X POST "${BASE_URL}/api/chat/sessions/${SESSION_ID}/messages" \
   -H "Content-Type: application/json" \
-  -d '{"senderRole":"client","senderName":"Client E2E","content":"Bonjour depuis E2E"}' >/dev/null
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d '{"content":"Bonjour depuis E2E"}' >/dev/null
 
-MESSAGES_RESPONSE="$(curl -sS "${BASE_URL}/api/chat/sessions/${SESSION_ID}/messages")"
+MESSAGES_RESPONSE="$(curl -sS "${BASE_URL}/api/chat/sessions/${SESSION_ID}/messages" \
+  -H "Authorization: Bearer ${TOKEN}")"
 MESSAGE_COUNT="$(MESSAGES_RESPONSE="${MESSAGES_RESPONSE}" python3 - <<'PY'
 import json
 import os

@@ -21,18 +21,21 @@ Les secrets sont ajoutes manuellement dans votre environnement local ou dans un 
 
 Variables utilisees:
 
-- `JWT_SECRET`: secret signe JWT pour `auth-service`.
+- `JWT_SECRET` : meme secret pour `auth-service` et `chat-service` (signature JWT). Minimum 16 caracteres recommande ; en CI GitHub le secret du meme nom est **obligatoire** (pas de valeur par defaut).
+- `ALLOWED_ORIGINS` : origines CORS autorisees pour auth et chat, separees par des virgules (defaut local : `http://localhost:8081,http://localhost:4200`). Sur AWS, le script Terraform derive automatiquement les origines depuis les metadonnees de l’instance.
 
 Exemple:
 
 ```bash
-export JWT_SECRET="votre-secret-local"
+export JWT_SECRET="votre-secret-local-long"
+export ALLOWED_ORIGINS="http://localhost:8081,http://localhost:4200"
 ```
 
 ou fichier `.env`:
 
 ```bash
-JWT_SECRET=votre-secret-local
+JWT_SECRET=votre-secret-local-long
+ALLOWED_ORIGINS=http://localhost:8081,http://localhost:4200
 ```
 
 ## Demarrage local
@@ -116,6 +119,13 @@ Exemple workflow:
     username: ${{ vars.DOCKERHUB_USERNAME }}
     password: ${{ secrets.DOCKERHUB_TOKEN }}
 ```
+
+### CI tests (auth / chat)
+
+- `JWT_SECRET`
+  - Type: `Secret`
+  - Portee: repository
+  - Role: cle partagee par les tests Node ; **obligatoire**, au moins 16 caracteres (voir etape `Verifier secret JWT CI` du workflow).
 
 ### AWS (OIDC recommande)
 

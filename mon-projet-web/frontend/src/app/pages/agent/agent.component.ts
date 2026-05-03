@@ -22,7 +22,7 @@ export class AgentComponent implements OnInit, OnDestroy {
   sortBy: 'timeDesc' | 'timeAsc' = 'timeDesc';
   loginError = '';
 
-  private readonly socket;
+  private socket?: ReturnType<ApiService['getSocket']>;
   private readonly messageListener = (incoming: ChatMessage) => {
     if (incoming.sessionId === this.selectedSessionId) {
       this.messages = [...this.messages, incoming];
@@ -34,25 +34,34 @@ export class AgentComponent implements OnInit, OnDestroy {
     this.loadSessions();
   };
 
-  constructor(private readonly apiService: ApiService) {
-    this.socket = this.apiService.getSocket();
+  constructor(private readonly apiService: ApiService) {}
+
+  ngOnInit(): void {
+    void this.bootstrapAgent();
   }
 
-  async ngOnInit() {
+  private async bootstrapAgent() {
+    try {
+      await this.apiService.login('agent', 'agent123');
+    } catch {
+      this.loginError = 'Connexion agent impossible.';
+      return;
+    }
+
+    this.socket = this.apiService.getSocket();
     this.socket.on('chat-message', this.messageListener);
     this.socket.on('chat-session-opened', this.sessionListener);
 
     try {
-      await this.apiService.login('agent', 'agent123');
       await this.loadSessions();
     } catch {
-      this.loginError = 'Connexion agent impossible.';
+      this.loginError = 'Impossible de charger les sessions.';
     }
   }
 
   ngOnDestroy() {
-    this.socket.off('chat-message', this.messageListener);
-    this.socket.off('chat-session-opened', this.sessionListener);
+    this.socket?.off('chat-message', this.messageListener);
+    this.socket?.off('chat-session-opened', this.sessionListener);
   }
 
   async loadSessions() {
@@ -83,6 +92,9 @@ export class AgentComponent implements OnInit, OnDestroy {
   }
 
   async selectSession(sessionId: string) {
+    if (!this.socket) {
+      return;
+    }
     this.selectedSessionId = sessionId;
     this.socket.emit('join-session', sessionId);
     const response = await this.apiService.getMessages(sessionId);
@@ -90,10 +102,10 @@ export class AgentComponent implements OnInit, OnDestroy {
   }
 
   async sendMessage() {
-    if (!this.selectedSessionId || !this.message.trim()) {
+    if (!this.selectedSessionId || !this.message.trim() || !this.socket) {
       return;
     }
-    await this.apiService.sendMessage(this.selectedSessionId, 'agent', this.agentName, this.message.trim());
+    await this.apiService.sendMessage(this.selectedSessionId, this.message.trim());
     this.message = '';
   }
 }

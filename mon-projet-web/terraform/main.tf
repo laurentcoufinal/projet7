@@ -42,21 +42,11 @@ locals {
     ManagedBy   = "terraform"
   }
 
-  app_user_data = <<EOF
-#!/bin/bash
-set -e
-sudo dnf update -y
-sudo dnf install -y docker
-sudo systemctl enable docker
-sudo systemctl start docker
-sudo usermod -aG docker ec2-user
-newgrp docker
-docker run -d -p 8081:8081 laurentcoufinal/projet7:latest
-docker run -d -p 4200:4200 laurentcoufinal/projet7-frontend:latest
-docker run -d -p 3001:3001 laurentcoufinal/projet7-auth-service:latest
-docker run -d -p 8000:8000 laurentcoufinal/projet7-product-service:latest
-docker run -d -p 3003:3003 laurentcoufinal/projet7-chat-service:latest
-EOF
+  app_user_data = templatefile("${path.module}/user-data.sh.tftpl", {
+    jwt_secret_b64 = base64encode(var.jwt_secret)
+    docker_user    = var.dockerhub_username
+    image_tag      = var.image_tag
+  })
 }
 
 resource "aws_security_group" "app_sg" {
@@ -112,6 +102,13 @@ resource "aws_instance" "app_server" {
 
   user_data                   = local.app_user_data
   user_data_replace_on_change = true
+
+  lifecycle {
+    precondition {
+      condition     = length(var.jwt_secret) >= 16
+      error_message = "jwt_secret doit faire au moins 16 caracteres."
+    }
+  }
 
   tags = local.common_tags
 }

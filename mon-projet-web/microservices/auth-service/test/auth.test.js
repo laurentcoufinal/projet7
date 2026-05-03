@@ -22,6 +22,14 @@ test("login valide retourne un token et un profil", async () => {
   assert.equal(response.body.user.role, "client");
 });
 
+test("login mot de passe incorrect retourne 401", async () => {
+  const response = await request(app).post("/login").send({
+    username: "client",
+    password: "wrong-password"
+  });
+  assert.equal(response.status, 401);
+});
+
 test("profile refuse un token manquant", async () => {
   const response = await request(app).get("/profile");
   assert.equal(response.status, 401);

@@ -1,6 +1,10 @@
 name: CI-CD Mon Projet Web
 
 on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
   workflow_dispatch:
 
 permissions:
@@ -8,8 +12,26 @@ permissions:
   id-token: write
 
 jobs:
+  controle-secret-jwt:
+    name: Controle secret JWT (CI)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verifier JWT_SECRET
+        run: |
+          if [ -z "$JWT_SECRET" ]; then
+            echo "::error::Definissez le secret GitHub JWT_SECRET."
+            exit 1
+          fi
+          if [ "${#JWT_SECRET}" -lt 16 ]; then
+            echo "::error::JWT_SECRET doit faire au moins 16 caracteres."
+            exit 1
+          fi
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
   test-auth-chat:
-    name: Tests Node (auth/chat)
+    name: Tests unitaires (auth-service, chat-service)
+    needs: [controle-secret-jwt]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -36,10 +58,10 @@ jobs:
         run: npm test
         working-directory: ${{ matrix.service }}
         env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dev-secret-change-me' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
   test-product:
-    name: Tests Python (product-service)
+    name: Tests unitaires (product-service)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -82,6 +104,41 @@ jobs:
         run: npm run build
         working-directory: frontend
 
+  test-e2e:
+    name: Tests E2E (Docker Compose + gateway)
+    needs:
+      - controle-secret-jwt
+      - test-auth-chat
+      - test-product
+      - build-frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Tests E2E
+        run: chmod +x e2e/run-e2e.sh && ./e2e/run-e2e.sh
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+  trivy-scan:
+    name: Trivy (vulnerabilites fichiers)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Trivy scan (filesystem)
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: "."
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+          skip-dirs: node_modules,.git,dist,.angular,.venv
+
   docker-build-and-push:
     name: Build et push images Docker
     runs-on: ubuntu-latest
@@ -89,6 +146,8 @@ jobs:
       - test-auth-chat
       - test-product
       - build-frontend
+      - test-e2e
+      - trivy-scan
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != ''
     steps:
       - name: Checkout
